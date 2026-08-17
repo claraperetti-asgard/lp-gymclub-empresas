@@ -20,12 +20,27 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .marquee-track {
+  .marquee-track,
+  .animate-float,
+  .animate-float-slow,
+  .animate-float-reverse {
     animation: none;
+  }
+  html {
+    scroll-behavior: auto;
   }
 }
 
 @layer base {
+  /* Âncoras do menu e dos CTAs deslizam até a seção em vez de saltar. */
+  html {
+    scroll-behavior: smooth;
+  }
+  /* O header é sticky e ocupa 80px no topo: sem essa margem a seção para
+     por baixo dele no fim da rolagem. */
+  section[id] {
+    scroll-margin-top: 5rem;
+  }
   body {
     font-family: var(--font-sans);
     @apply bg-[#FAFAFA] text-gray-900;

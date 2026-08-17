@@ -7,11 +7,15 @@ export default function Footer() {
     <footer className="bg-gray-100 border-t border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-        <div className="py-16 grid grid-cols-1 md:grid-cols-[1.3fr_0.8fr_1.2fr] gap-16 lg:gap-20">
+        <div className="py-12 sm:py-16 grid grid-cols-1 md:grid-cols-[1.3fr_0.8fr_1.2fr] gap-10 md:gap-16 lg:gap-20">
 
           {/* Marca */}
           <div>
-            <div className="flex items-center gap-2 mb-6">
+            <a
+              href="#inicio"
+              aria-label="Voltar ao início"
+              className="flex items-center gap-2 mb-6 w-fit rounded-full transition-opacity hover:opacity-80"
+            >
               <img
                 src={mark}
                 alt="GymClub"
@@ -23,7 +27,7 @@ export default function Footer() {
                 alt="GymClub"
                 className="h-12 w-auto object-contain"
               />
-            </div>
+            </a>
 
             <p className="font-title font-light text-sm leading-relaxed text-gray-500 max-w-xs">
               O benefício corporativo inteligente.

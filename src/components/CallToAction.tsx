@@ -11,7 +11,7 @@ export default function CallToAction() {
   ];
 
   return (
-    <section className="py-32 relative overflow-hidden">
+    <section className="py-20 sm:py-32 relative overflow-hidden">
       
       {/* Subtle Background Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-gradient-yellow-orange opacity-10 blur-[100px] pointer-events-none rounded-full" />
@@ -29,18 +29,18 @@ export default function CallToAction() {
       </div>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-        <h2 className="text-5xl md:text-7xl font-title font-extrabold text-gray-900 tracking-tight leading-tight mb-8">
+        <h2 className="text-xl sm:text-5xl md:text-7xl font-title font-extrabold text-gray-900 tracking-tight leading-tight mb-6 sm:mb-8">
           Pare de pagar por quem <span className="text-gradient-orange">não utiliza</span> o benefício.
         </h2>
 
-        <p className="text-xl md:text-3xl font-title font-light text-gray-600 mb-12">
+        <p className="text-sm sm:text-xl md:text-3xl font-title font-light text-gray-600 mb-10 sm:mb-12">
           Transforme seu caixa e engaje seu time com o{' '}
           <span className="text-gradient-orange font-bold">GymClub</span>.
         </p>
         
         <a
           href="#cadastro"
-          className="inline-block bg-gray-900 hover:bg-gray-800 text-white px-10 py-5 rounded-full text-lg font-title font-bold transition-all hover:shadow-2xl hover:shadow-gray-900/20 hover:-translate-y-1"
+          className="inline-block bg-gray-900 hover:bg-gray-800 text-white px-6 sm:px-10 py-3 sm:py-5 rounded-full text-[13px] sm:text-lg font-title font-bold transition-all hover:shadow-2xl hover:shadow-gray-900/20 hover:-translate-y-1"
         >
           Cadastrar minha empresa
         </a>

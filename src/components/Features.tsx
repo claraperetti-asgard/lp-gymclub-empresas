@@ -42,18 +42,18 @@ const features = [
 
 export default function Features() {
   return (
-    <section id="vantagens" className="py-24">
+    <section id="vantagens" className="py-16 sm:py-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl md:text-4xl font-title font-bold text-gray-900 mb-6">
+        <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
+          <h2 className="text-xl sm:text-3xl md:text-4xl font-title font-bold text-gray-900 mb-6">
             Diferente de tudo que você já viu no mercado
           </h2>
-          <p className="text-lg font-title font-light text-gray-600">
+          <p className="text-sm sm:text-lg font-title font-light text-gray-600">
             Enquanto outros aplicativos cobram uma taxa fixa por colaborador cadastrado apenas para liberar o acesso, no GymClub a sua empresa participa ativamente do benefício.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {features.map((feature, index) => (
             <motion.div
               key={index}
@@ -61,13 +61,13 @@ export default function Features() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
-              className="bg-white rounded-2xl p-8 border border-gray-100 hover:border-gray-200 hover:bg-gray-50 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-gray-100/50"
+              className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-100 hover:border-gray-200 hover:bg-gray-50 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-gray-100/50"
             >
               <div className={`w-12 h-12 ${feature.iconBg} rounded-xl flex items-center justify-center mb-6 shadow-sm`}>
                 {feature.icon}
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
-              <p className="font-title font-light text-gray-600 leading-relaxed">{feature.description}</p>
+              <h3 className="text-base sm:text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
+              <p className="text-[13px] sm:text-base font-title font-light text-gray-600 leading-relaxed">{feature.description}</p>
             </motion.div>
           ))}
         </div>

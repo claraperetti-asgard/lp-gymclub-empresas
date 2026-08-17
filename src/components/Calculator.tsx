@@ -35,11 +35,13 @@ export default function Calculator() {
 
   const employeePays = Math.max(0, planCost - contributionPerUser);
 
-   const annualSavings = Math.max(0, savings) * 12;
-
-   
-  const currentCostPerActiveUser =
-    activeUsers > 0 ? currentTotalCost / activeUsers : 0;
+  // A comparação tem dois desfechos. Quando a coparticipação é alta o GymClub
+  // custa mais — e isso não é economia negativa, é a empresa bancando mais do
+  // plano de cada pessoa. Guardar o módulo e o sinal separados deixa a tela
+  // dizer qual dos dois está acontecendo, em vez de travar em zero.
+  const isSaving = savings > 0;
+  const monthlyDelta = Math.abs(savings);
+  const annualDelta = monthlyDelta * 12;
 
    const adoptionRate = totalEmp > 0 ? (activeUsers / totalEmp) * 100 : 0;
 
@@ -55,7 +57,7 @@ export default function Calculator() {
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl md:text-5xl font-title font-bold text-gray-900 mb-6 tracking-tight">
+          <h2 className="text-xl sm:text-3xl md:text-5xl font-title font-bold text-gray-900 mb-6 tracking-tight">
             Transforme{' '}
             <span className="text-gray-400 line-through decoration-[#f7e92a] decoration-4">
               custo
@@ -63,7 +65,7 @@ export default function Calculator() {
             em valor percebido
           </h2>
 
-          <p className="text-lg font-title font-light text-gray-600">
+          <p className="text-sm sm:text-lg font-title font-light text-gray-600">
             Simule o investimento e veja como o GymClub é mais inteligente para o seu caixa.
           </p>
         </div>
@@ -72,11 +74,11 @@ export default function Calculator() {
         <div className="bg-white rounded-[40px] border border-gray-200 shadow-xl shadow-gray-200/40 p-6 md:p-10">
 
           <div className="flex justify-center mb-8">
-            <div className="inline-flex bg-gray-100 border border-gray-200 p-1 rounded-full items-center">
+            <div className="inline-flex w-full sm:w-auto flex-col sm:flex-row bg-gray-100 border border-gray-200 p-1 rounded-2xl sm:rounded-full items-stretch sm:items-center">
 
               <button
                 onClick={() => setHasBenefit(false)}
-                className={`px-6 py-2.5 rounded-full text-xs uppercase tracking-widest font-title font-light transition-all ${
+                className={`px-4 sm:px-6 py-3 sm:py-2.5 rounded-xl sm:rounded-full text-[11px] sm:text-xs uppercase tracking-wider sm:tracking-widest font-title font-light transition-all ${
                   !hasBenefit
                     ? 'bg-black text-white shadow-sm'
                     : 'text-black hover:text-gray-900'
@@ -87,7 +89,7 @@ export default function Calculator() {
 
               <button
                 onClick={() => setHasBenefit(true)}
-                className={`px-6 py-2.5 rounded-full text-xs uppercase tracking-widest font-title font-light transition-all ${
+                className={`px-4 sm:px-6 py-3 sm:py-2.5 rounded-xl sm:rounded-full text-[11px] sm:text-xs uppercase tracking-wider sm:tracking-widest font-title font-light transition-all ${
                   hasBenefit
                     ? 'bg-black text-white shadow-sm'
                     : 'text-black hover:text-gray-900'
@@ -102,9 +104,9 @@ export default function Calculator() {
           <div className="grid lg:grid-cols-12 gap-8 items-stretch">
 
             {/* Form Panel */}
-            <div className="lg:col-span-5 h-full bg-gray-50 p-8 rounded-[32px] border border-gray-200">
+            <div className="lg:col-span-5 min-w-0 h-full bg-gray-50 p-6 sm:p-8 rounded-[32px] border border-gray-200">
 
-              <h3 className="text-xl font-bold text-gray-900 mb-6">
+              <h3 className="text-base sm:text-xl font-bold text-gray-900 mb-6">
                 Configure sua simulação
               </h3>
 
@@ -147,6 +149,19 @@ export default function Calculator() {
                       <p className="text-xs font-title font-light text-gray-500 mt-2">
                         Valor que a plataforma cobra apenas para liberar o acesso, mesmo de quem não usa.
                       </p>
+                    </div>
+
+                    {/* Soma dos dois campos. Sem ela o usuário digita a
+                        mensalidade, esquece a taxa por cadastro e não entende
+                        de onde saiu o total do comparativo. */}
+                    <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 pt-3 border-t border-dashed border-gray-200">
+                      <span className="text-xs font-title font-light text-gray-500">
+                        Você paga hoje, por mês
+                      </span>
+
+                      <span className="text-base font-title font-bold text-gray-900">
+                        {money(currentTotalCost)}
+                      </span>
                     </div>
 
                   </div>
@@ -204,7 +219,7 @@ export default function Calculator() {
                 </div>
 
                 <div>
-                  <div className="flex justify-between items-end mb-2">
+                  <div className="flex flex-col items-start gap-1 sm:flex-row sm:justify-between sm:items-end mb-2">
 
                     <label className="block text-sm font-title font-light text-gray-700">
                       Coparticipação da Empresa (R$)
@@ -232,7 +247,7 @@ export default function Calculator() {
                 </div>
 
                 <div>
-                  <div className="flex justify-between items-end mb-2">
+                  <div className="flex flex-col items-start gap-1 sm:flex-row sm:justify-between sm:items-end mb-2">
 
                     <label className="block text-sm font-title font-light text-gray-700">
                       Estimativa de Uso
@@ -265,7 +280,7 @@ export default function Calculator() {
             </div>
 
             {/* Results Panel */}
-            <div className="lg:col-span-7 flex flex-col gap-6">
+            <div className="lg:col-span-7 min-w-0 flex flex-col gap-6">
 
               {hasBenefit ? (
 
@@ -274,7 +289,7 @@ export default function Calculator() {
                 <div className="grid sm:grid-cols-2 gap-6">
 
                   {/* Custo Atual */}
-                  <div className="bg-gray-50 p-8 rounded-[32px] border border-gray-200 shadow-lg shadow-gray-200/30 relative overflow-hidden min-h-[280px] flex flex-col justify-center">
+                  <div className="bg-gray-50 p-6 sm:p-8 rounded-[32px] border border-gray-200 shadow-lg shadow-gray-200/30 relative overflow-hidden sm:min-h-[280px] flex flex-col sm:justify-center">
 
                     <div className="absolute left-0 top-0 bottom-0 w-1 bg-gray-300 rounded-l-[32px]" />
 
@@ -282,7 +297,7 @@ export default function Calculator() {
                       Custo Atual (Outros Apps)
                     </h4>
 
-                    <div className="relative z-10 text-4xl font-title font-bold text-gray-400 line-through decoration-2 mb-2">
+                    <div className="relative z-10 text-3xl sm:text-4xl font-title font-bold text-gray-400 line-through decoration-2 mb-2">
                       {money(currentTotalCost)}
                     </div>
 
@@ -293,23 +308,32 @@ export default function Calculator() {
                   </div>
 
                   {/* Simulação GymClub */}
-                  <div className="bg-[#e9fdf2] p-8 rounded-[32px] border border-gym-green/30 shadow-lg shadow-gym-green/10 relative overflow-hidden min-h-[280px] flex flex-col justify-center">
+                  <div className="bg-[#e9fdf2] p-6 sm:p-8 rounded-[32px] border border-gym-green/30 shadow-lg shadow-gym-green/10 relative overflow-hidden sm:min-h-[280px] flex flex-col sm:justify-center">
 
                     <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gym-green rounded-l-[32px]" />
 
-                    <div className="absolute top-6 right-6 bg-gym-green text-gray-900 text-[10px] font-title font-bold px-3 py-1.5 rounded-full shadow-sm">
-                      VOCÊ ECONOMIZA{' '}
-                      {savings > 0
-                        ? ((savings / currentTotalCost) * 100).toFixed(0)
-                        : 0}
-                      %
+                    <div
+                      className={`relative z-10 inline-block mb-4 self-start sm:absolute sm:top-6 sm:right-6 sm:mb-0 text-[10px] font-title font-bold px-3 py-1.5 rounded-full shadow-sm ${
+                        isSaving
+                          ? 'bg-gym-green text-gray-900'
+                          : 'bg-gray-900 text-white'
+                      }`}
+                    >
+                      {isSaving ? (
+                        <>
+                          VOCÊ ECONOMIZA{' '}
+                          {((savings / currentTotalCost) * 100).toFixed(0)}%
+                        </>
+                      ) : (
+                        'VOCÊ INVESTE MAIS'
+                      )}
                     </div>
 
-                    <h4 className="relative z-10 text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-4 pr-28">
+                    <h4 className="relative z-10 text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-4 sm:pr-36">
                       Simulação GymClub
                     </h4>
 
-                    <div className="relative z-10 text-4xl font-title font-bold text-gray-900 mb-2">
+                    <div className="relative z-10 text-3xl sm:text-4xl font-title font-bold text-gray-900 mb-2">
                       {money(actualGymClubCost)}
                     </div>
 
@@ -317,11 +341,17 @@ export default function Calculator() {
                       Pague apenas pelo uso efetivo ({activeUsers} pessoas).
                     </p>
 
-                    {savings > 0 && (
-                      <div className="relative z-10 mt-6 inline-block bg-gray-900 text-gym-green px-4 py-2 rounded-full text-sm font-title font-bold shadow-sm">
-                        Economia de {money(savings)} / mês
-                      </div>
-                    )}
+                    <div
+                      className={`relative z-10 mt-6 inline-block px-4 py-2 rounded-full text-xs sm:text-sm font-title font-bold shadow-sm ${
+                        isSaving
+                          ? 'bg-gray-900 text-gym-green'
+                          : 'bg-white text-gray-900 border border-gray-900/15'
+                      }`}
+                    >
+                      {isSaving
+                        ? `Economia de ${money(monthlyDelta)} / mês`
+                        : `+ ${money(monthlyDelta)} / mês`}
+                    </div>
 
                   </div>
 
@@ -333,33 +363,19 @@ export default function Calculator() {
                   <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gym-green rounded-l-[32px]" />
 
                   <h4 className="relative z-10 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">
-                    Economia anual
+                    {isSaving ? 'Economia anual' : 'Investimento anual a mais'}
                   </h4>
 
                   <div className="relative z-10 text-2xl font-title font-bold text-gray-900 mb-1">
-                    {money(annualSavings)}
+                    {money(annualDelta)}
                   </div>
 
                   <p className="relative z-10 text-xs font-title font-light text-gray-500">
-                    Mantendo a mesma adoção da simulação acima.
-                  </p>
-
-                </div>
-
-                <div className="bg-gray-50 rounded-[32px] border border-gray-200 p-6 relative overflow-hidden">
-
-                  <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gym-green rounded-l-[32px]" />
-
-                  <h4 className="relative z-10 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">
-                    Hoje, por colaborador que usa
-                  </h4>
-
-                  <div className="relative z-10 text-2xl font-title font-bold text-gray-900 mb-1">
-                    {activeUsers > 0 ? money(currentCostPerActiveUser) : '—'}
-                  </div>
-
-                  <p className="relative z-10 text-xs font-title font-light text-gray-500">
-                    Você paga por {totalEmp} cadastros, mas só {activeUsers} usam.
+                    {isSaving
+                      ? 'Mantendo a mesma adoção da simulação acima.'
+                      : employeePays === 0
+                        ? `Em troca, os ${activeUsers} colaboradores ativos recebem o plano 100% custeado pela empresa.`
+                        : `Em troca, cada um dos ${activeUsers} ativos recebe ${money(contributionPerUser)} de desconto na mensalidade — dinheiro que ele sente no bolso, não taxa de acesso.`}
                   </p>
 
                 </div>
@@ -387,7 +403,7 @@ export default function Calculator() {
               ) : (
 
                 /* Investimento */
-                <div className="bg-[#fff3e8] p-8 rounded-[40px] border border-gym-orange/30 shadow-lg shadow-gym-orange/10 relative overflow-hidden">
+                <div className="bg-[#fff3e8] p-6 sm:p-8 rounded-[40px] border border-gym-orange/30 shadow-lg shadow-gym-orange/10 relative overflow-hidden">
 
                   <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gym-orange rounded-l-[40px]" />
 
@@ -398,7 +414,7 @@ export default function Calculator() {
                         Investimento Estimado
                       </h4>
 
-                      <div className="text-5xl font-title font-bold text-gray-900">
+                      <div className="text-3xl sm:text-4xl md:text-5xl font-title font-bold text-gray-900">
                         {money(actualGymClubCost)}
                       </div>
                     </div>
@@ -444,14 +460,11 @@ export default function Calculator() {
                 </div>
               )}
 
-              {/* CTA do simulador. Fica fora do ternário porque vale para os
-                  dois cenários. O mt-auto encosta ele no rodapé da coluna, na
-                  mesma linha em que o formulário ao lado termina, em vez de
-                  abrir uma faixa nova embaixo da caixa inteira. */}
+             
               <div className="mt-auto flex justify-center sm:justify-end">
                 <a
                   href="#cadastro"
-                  className="inline-block bg-gradient-orange hover:bg-gray-800 text-black px-6 py-3 rounded-full text-sm font-title font-bold transition-all hover:shadow-lg hover:shadow-gray-900/20 hover:-translate-y-0.5"
+                  className="inline-block bg-gradient-orange hover:bg-gray-800 text-black px-5 sm:px-6 py-3 rounded-full text-xs sm:text-sm font-title font-bold text-center transition-all hover:shadow-lg hover:shadow-gray-900/20 hover:-translate-y-0.5"
                 >
                   Quero implementar na minha empresa ➝
                 </a>
