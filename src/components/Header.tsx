@@ -28,12 +28,15 @@ export default function Header() {
           <img src={logoMark} alt="GymClub" className="h-9 sm:h-[76px] w-auto shrink-0" />
         </a>
 
-        <nav className="hidden md:flex items-center gap-2">
+        {/* Só a partir de lg cabe logo + 4 links + botão na mesma linha.
+            No tablet (md) os links passavam por cima do logotipo, então até
+            lá vale o menu hambúrguer. */}
+        <nav className="hidden lg:flex items-center gap-1 xl:gap-2">
           {navLinks.map((link) => (
             <a
               key={link.href}
               href={link.href}
-              className="px-5 py-2.5 rounded-full text-base font-title font-light text-gray-900 hover:bg-gym-yellow hover:font-bold transition-colors"
+              className="px-3 xl:px-5 py-2.5 rounded-full text-sm xl:text-base font-title font-light text-gray-900 whitespace-nowrap hover:bg-gym-yellow hover:font-bold transition-colors"
             >
               {link.label}
             </a>
@@ -53,7 +56,7 @@ export default function Header() {
             aria-expanded={menuOpen}
             aria-controls="menu-mobile"
             aria-label={menuOpen ? 'Fechar menu' : 'Abrir menu'}
-            className="md:hidden shrink-0 w-10 h-10 flex items-center justify-center rounded-full text-gray-900 hover:bg-gym-yellow transition-colors"
+            className="lg:hidden shrink-0 w-10 h-10 flex items-center justify-center rounded-full text-gray-900 hover:bg-gym-yellow transition-colors"
           >
             {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -65,7 +68,7 @@ export default function Header() {
       {menuOpen && (
         <nav
           id="menu-mobile"
-          className="md:hidden border-t border-gray-200/70 px-4 pb-4 pt-2"
+          className="lg:hidden border-t border-gray-200/70 px-4 pb-4 pt-2"
         >
           {navLinks.map((link) => (
             <a
