@@ -1,9 +1,32 @@
-import { useState } from 'react';
- 
-const PLANS = [
-  39.90, 69.90, 99.90, 139.90, 169.90, 199.90,
-  249.90, 309.90, 419.90, 549.90, 649.90, 739.90,
+import { useRef, useState } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import nivel1 from '../assets/nivel-1.svg';
+import nivel2 from '../assets/nivel-2.svg';
+import nivel3 from '../assets/nivel-3.svg';
+
+// A carinha acompanha a faixa do plano: nível 1 vai do Clube 1 ao 4,
+// nível 2 do 5 ao 8 e nível 3 fecha do 9 ao 12.
+const PLAN_CARDS = [
+  { name: 'CLUBE 1', price: 39.90, hex: '#ff883f', face: nivel1 },
+  { name: 'CLUBE 2', price: 69.90, hex: '#ff883f', face: nivel1 },
+  { name: 'CLUBE 3', price: 99.90, hex: '#ff9d3a', face: nivel1 },
+  { name: 'CLUBE 4', price: 139.90, hex: '#ffb336', face: nivel1 },
+  { name: 'CLUBE 5', price: 169.90, hex: '#f7e92a', face: nivel2 },
+  { name: 'CLUBE 6', price: 199.90, hex: '#f7e92a', face: nivel2 },
+  { name: 'CLUBE 7', price: 249.90, hex: '#e8ec2b', face: nivel2 },
+  { name: 'CLUBE 8', price: 309.90, hex: '#d9f032', face: nivel2 },
+  { name: 'CLUBE 9', price: 419.90, hex: '#c2f463', face: nivel3 },
+  { name: 'CLUBE 10', price: 549.90, hex: '#c2f463', face: nivel3 },
+  { name: 'CLUBE 11', price: 649.90, hex: '#b3f253', face: nivel3 },
+  { name: 'CLUBE 12', price: 739.90, hex: '#a1f042', face: nivel3 },
 ];
+
+// gap-4 entre os cards do carrossel.
+const CARD_GAP = 16;
+
+// Teto da coparticipação. R$ 200 cobre por inteiro do Clube 1 ao 6, e é onde o
+// slider ainda deixa acertar o valor — acima disso vira um trilho longo demais.
+const MAX_CONTRIBUTION = 200;
 
 const brl = new Intl.NumberFormat('pt-BR', {
   style: 'currency',
@@ -12,8 +35,25 @@ const brl = new Intl.NumberFormat('pt-BR', {
 
 const money = (value: number) => brl.format(Number.isFinite(value) ? value : 0);
 
+// No card o "R$" sai de cena para o número respirar, como no site.
+const plainBrl = new Intl.NumberFormat('pt-BR', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+const amount = (value: number) =>
+  plainBrl.format(Number.isFinite(value) ? value : 0);
+
 export default function Calculator() {
   const [hasBenefit, setHasBenefit] = useState<boolean>(false);
+
+  const carouselRef = useRef<HTMLDivElement>(null);
+
+  // Guardado em ref porque muda a cada pixel do arrasto e não deve
+  // re-renderizar; só o snap precisa virar estado, e ele muda duas vezes por
+  // arrasto (começo e fim).
+  const dragOrigin = useRef({ pointerX: 0, scrollLeft: 0 });
+  const [dragging, setDragging] = useState(false);
 
    const [totalEmp, setTotalEmp] = useState<number>(100);
   const [contribution, setContribution] = useState<number>(40);
@@ -22,23 +62,13 @@ export default function Calculator() {
    const [currentFixedFee, setCurrentFixedFee] = useState<number>(500);
   const [currentFeePerUser, setCurrentFeePerUser] = useState<number>(10);
 
-   const [planCost, setPlanCost] = useState<number>(69.90);
-
-   
-  const contributionPerUser = Math.min(contribution, planCost);
-
-   const maxGymClubCost = totalEmp * contributionPerUser;
-  const actualGymClubCost = activeUsers * contributionPerUser;
+   const actualGymClubCost = activeUsers * contribution;
+  const annualGymClubCost = actualGymClubCost * 12;
 
    const currentTotalCost = currentFixedFee + (totalEmp * currentFeePerUser);
   const savings = currentTotalCost - actualGymClubCost;
 
-  const employeePays = Math.max(0, planCost - contributionPerUser);
-
-  // A comparação tem dois desfechos. Quando a coparticipação é alta o GymClub
-  // custa mais — e isso não é economia negativa, é a empresa bancando mais do
-  // plano de cada pessoa. Guardar o módulo e o sinal separados deixa a tela
-  // dizer qual dos dois está acontecendo, em vez de travar em zero.
+  
   const isSaving = savings > 0;
   const monthlyDelta = Math.abs(savings);
   const annualDelta = monthlyDelta * 12;
@@ -47,6 +77,55 @@ export default function Calculator() {
 
    
   const toPositive = (value: string) => Math.max(0, Number(value) || 0);
+
+  const startDrag = (event: React.PointerEvent<HTMLDivElement>) => {
+    const track = carouselRef.current;
+
+    // No toque o próprio navegador já rola; entrar no caminho aqui só
+    // atrapalharia a inércia nativa.
+    if (!track || event.pointerType === 'touch') return;
+
+    dragOrigin.current = { pointerX: event.clientX, scrollLeft: track.scrollLeft };
+    setDragging(true);
+    track.setPointerCapture(event.pointerId);
+  };
+
+  const moveDrag = (event: React.PointerEvent<HTMLDivElement>) => {
+    const track = carouselRef.current;
+
+    if (!track || !dragging) return;
+
+    track.scrollLeft =
+      dragOrigin.current.scrollLeft - (event.clientX - dragOrigin.current.pointerX);
+  };
+
+  const endDrag = (event: React.PointerEvent<HTMLDivElement>) => {
+    const track = carouselRef.current;
+
+    if (!track || !dragging) return;
+
+    setDragging(false);
+
+    if (track.hasPointerCapture(event.pointerId)) {
+      track.releasePointerCapture(event.pointerId);
+    }
+  };
+
+  const scrollCarousel = (direction: 'left' | 'right') => {
+    const track = carouselRef.current;
+
+    if (!track) return;
+
+    // O card muda de largura em cada breakpoint (85vw, 340px, 380px), então o
+    // passo sai da medida real em vez de uma constante que só serve num deles.
+    const card = track.firstElementChild as HTMLElement | null;
+    const step = card ? card.offsetWidth + CARD_GAP : track.clientWidth;
+
+    track.scrollBy({
+      left: direction === 'left' ? -step : step,
+      behavior: 'smooth',
+    });
+  };
 
   return (
     <section id="calculadora" className="relative overflow-x-clip py-24">
@@ -151,9 +230,7 @@ export default function Calculator() {
                       </p>
                     </div>
 
-                    {/* Soma dos dois campos. Sem ela o usuário digita a
-                        mensalidade, esquece a taxa por cadastro e não entende
-                        de onde saiu o total do comparativo. */}
+                  
                     <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 pt-3 border-t border-dashed border-gray-200">
                       <span className="text-xs font-title font-light text-gray-500">
                         Você paga hoje, por mês
@@ -189,36 +266,6 @@ export default function Calculator() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-title font-light text-gray-700 mb-2">
-                    Plano do Colaborador
-                  </label>
-
-                  <select
-                    value={planCost}
-                    onChange={(e) => {
-                      const val = Number(e.target.value);
-                      setPlanCost(val);
-
-                      // A coparticipação não pode sobrar do plano escolhido.
-                      if (contribution > val) {
-                        setContribution(val);
-                      }
-                    }}
-                    className="w-full px-4 py-3 bg-white border border-gray-200 text-gray-900 rounded-xl focus:ring-2 focus:ring-gym-orange focus:border-gym-orange transition-all outline-none"
-                  >
-                    {PLANS.map((plan) => (
-                      <option key={plan} value={plan}>
-                        {money(plan)}
-                      </option>
-                    ))}
-                  </select>
-
-                  <p className="text-xs font-title font-light text-gray-500 mt-2">
-                    Mensalidade cheia do plano que o colaborador vai assinar.
-                  </p>
-                </div>
-
-                <div>
                   <div className="flex flex-col items-start gap-1 sm:flex-row sm:justify-between sm:items-end mb-2">
 
                     <label className="block text-sm font-title font-light text-gray-700">
@@ -226,7 +273,7 @@ export default function Calculator() {
                     </label>
 
                     <span className="text-sm font-title font-bold text-gym-orange">
-                      {money(contributionPerUser)}
+                      {money(contribution)}
                     </span>
 
                   </div>
@@ -234,8 +281,8 @@ export default function Calculator() {
                   <input
                     type="range"
                     min="0"
-                    max={planCost}
-                    step="0.10"
+                    max={MAX_CONTRIBUTION}
+                    step="5"
                     value={contribution}
                     onChange={(e) => setContribution(Number(e.target.value))}
                     className="w-full accent-gym-orange"
@@ -373,27 +420,7 @@ export default function Calculator() {
                   <p className="relative z-10 text-xs font-title font-light text-gray-500">
                     {isSaving
                       ? 'Mantendo a mesma adoção da simulação acima.'
-                      : employeePays === 0
-                        ? `Em troca, os ${activeUsers} colaboradores ativos recebem o plano 100% custeado pela empresa.`
-                        : `Em troca, cada um dos ${activeUsers} ativos recebe ${money(contributionPerUser)} de desconto na mensalidade — dinheiro que ele sente no bolso, não taxa de acesso.`}
-                  </p>
-
-                </div>
-
-                <div className="bg-gray-50 rounded-[32px] border border-gray-200 p-6 relative overflow-hidden">
-
-                  <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gym-green rounded-l-[32px]" />
-
-                  <h4 className="relative z-10 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">
-                    O colaborador paga
-                  </h4>
-
-                  <div className="relative z-10 text-2xl font-title font-bold text-gray-900 mb-1">
-                    {money(employeePays)}
-                  </div>
-
-                  <p className="relative z-10 text-xs font-title font-light text-gray-500">
-                    No plano de {money(planCost)}, com sua ajuda de {money(contributionPerUser)}.
+                      : `Em troca, cada um dos ${activeUsers} ativos recebe ${money(contribution)} de desconto na mensalidade — dinheiro que ele sente no bolso, não taxa de acesso.`}
                   </p>
 
                 </div>
@@ -402,78 +429,189 @@ export default function Calculator() {
 
               ) : (
 
-                /* Investimento */
+                /* Investimento. Três cards do tamanho do que cada um diz:
+                   um painel único aqui virava uma caixa quase vazia, já que
+                   sem benefício atual não existe custo para comparar. */
+                <>
+
                 <div className="bg-[#fff3e8] p-6 sm:p-8 rounded-[40px] border border-gym-orange/30 shadow-lg shadow-gym-orange/10 relative overflow-hidden">
 
                   <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gym-orange rounded-l-[40px]" />
 
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4 relative z-10">
+                  <h4 className="relative z-10 text-[10px] font-bold text-gray-800 uppercase tracking-widest mb-3">
+                    Investimento estimado
+                  </h4>
 
-                    <div>
-                      <h4 className="text-[10px] font-bold text-gray-800 uppercase tracking-widest mb-2">
-                        Investimento Estimado
-                      </h4>
+                  <div className="relative z-10 flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-4">
 
-                      <div className="text-3xl sm:text-4xl md:text-5xl font-title font-bold text-gray-900">
-                        {money(actualGymClubCost)}
-                      </div>
-                    </div>
+                    <span className="text-3xl sm:text-4xl md:text-5xl font-title font-bold text-gray-900">
+                      {money(actualGymClubCost)}
+                    </span>
 
-                    <div className="text-right">
-                      <p className="text-[10px] font-title font-light text-gray-800 uppercase tracking-widest mb-1">
-                        Custo máximo pretendido
-                      </p>
-
-                      <p className="text-lg font-title font-light text-gray-400 line-through">
-                        {money(maxGymClubCost)}
-                      </p>
-                    </div>
+                    <span className="text-xs font-title font-light text-gray-700 uppercase tracking-widest">
+                      por mês
+                    </span>
 
                   </div>
 
-                  <div className="bg-white rounded-3xl p-6 border border-gym-orange/20 flex flex-col sm:flex-row gap-6 justify-between items-center relative z-10 shadow-sm">
-
-                    <div>
-                      <h4 className="text-[10px] uppercase tracking-widest font-bold text-gray-500 mb-1">
-                        Percepção do Colaborador
-                      </h4>
-
-                      <p className="text-sm font-title font-light text-gray-900">
-                        Plano Base: {money(planCost)}
-                      </p>
-                    </div>
-
-                    <div className="text-center sm:text-right">
-
-                      <p className="text-[10px] font-title font-light uppercase tracking-widest text-gray-500 mb-1">
-                        Com sua ajuda, ele paga apenas:
-                      </p>
-
-                      <p className="text-3xl font-title font-extrabold text-gray-900">
-                        {money(employeePays)}
-                      </p>
-
-                    </div>
-
-                  </div>
+                  <p className="relative z-10 text-xs sm:text-sm font-title font-light text-gray-700">
+                    {activeUsers} colaboradores ativos × {money(contribution)} de
+                    coparticipação. Quem não usa, não entra na conta.
+                  </p>
 
                 </div>
-              )}
 
-             
-              <div className="mt-auto flex justify-center sm:justify-end">
-                <a
-                  href="#cadastro"
-                  className="inline-block bg-gradient-orange hover:bg-gray-800 text-black px-5 sm:px-6 py-3 rounded-full text-xs sm:text-sm font-title font-bold text-center transition-all hover:shadow-lg hover:shadow-gray-900/20 hover:-translate-y-0.5"
-                >
-                  Quero implementar na minha empresa ➝
-                </a>
-              </div>
+                <div className="bg-gray-50 rounded-[32px] border border-gray-200 p-6 relative overflow-hidden">
+
+                  <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gym-orange rounded-l-[32px]" />
+
+                  <h4 className="relative z-10 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">
+                    Investimento anual
+                  </h4>
+
+                  <div className="relative z-10 text-2xl font-title font-bold text-gray-900 mb-1">
+                    {money(annualGymClubCost)}
+                  </div>
+
+                  <p className="relative z-10 text-xs font-title font-light text-gray-500">
+                    Mantendo os {adoptionRate.toFixed(0)}% de adoção da simulação.
+                  </p>
+
+                </div>
+
+                </>
+              )}
 
             </div>
 
           </div>
+
+    
+          <div className="mt-3 pt-10  ">
+
+            <div className="mb-6">
+
+              <h3 className="text-base sm:text-xl font-bold text-gray-900">
+                O que o colaborador vê
+              </h3>
+
+              <p className="text-xs sm:text-sm font-title font-light text-gray-500 mt-1">
+                Com a sua ajuda de{' '}
+                <strong className="font-bold text-gray-900">{money(contribution)}</strong>,
+                este é o preço que aparece para ele em cada plano.
+              </p>
+
+            </div>
+
+          
+            <div className="relative">
+
+              <button
+                type="button"
+                aria-label="Ver planos anteriores"
+                onClick={() => scrollCarousel('left')}
+                className="absolute -left-2 sm:-left-5 top-1/2 z-20 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white border border-gray-200 shadow-md shadow-gray-300/40 flex items-center justify-center text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+
+              <button
+                type="button"
+                aria-label="Ver próximos planos"
+                onClick={() => scrollCarousel('right')}
+                className="absolute -right-2 sm:-right-5 top-1/2 z-20 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white border border-gray-200 shadow-md shadow-gray-300/40 flex items-center justify-center text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+
+              <div
+                ref={carouselRef}
+                onPointerDown={startDrag}
+                onPointerMove={moveDrag}
+                onPointerUp={endDrag}
+                onPointerCancel={endDrag}
+                className={`flex gap-4 overflow-x-auto hide-scrollbar -mx-2 px-2 py-2 ${
+                  dragging
+                    ? 'snap-none cursor-grabbing select-none'
+                    : 'snap-x snap-mandatory cursor-grab'
+                }`}
+              >
+
+                {PLAN_CARDS.map((plan) => {
+                   
+                  const help = Math.min(contribution, plan.price);
+                  const finalPrice = plan.price - help;
+
+                  return (
+                    <article
+                      key={plan.name}
+                      className="group relative min-h-[190px] min-w-[240px] flex-none snap-start overflow-hidden rounded-[28px] border border-gray-200 bg-gray-50 px-5 py-5 text-left transition duration-300 hover:-translate-y-1 hover:border-transparent hover:bg-white hover:shadow-lg hover:shadow-gray-300/50 sm:min-w-[260px] sm:px-6 sm:py-6"
+                    >
+
+                      <div className="relative z-10 flex h-full flex-col pr-16">
+
+                        <h4 className="font-title text-xl font-bold uppercase leading-tight text-black sm:text-2xl">
+                          {plan.name}
+                        </h4>
+
+                        <div className="mt-3 space-y-1">
+
+                          {help > 0 && (
+                            <p className="font-title text-lg font-light text-red-500 line-through">
+                              {amount(plan.price)}
+                            </p>
+                          )}
+
+                          <p className="font-title text-2xl font-semibold text-black sm:text-3xl">
+                            {amount(finalPrice)}
+                          </p>
+
+                          <p className="font-title text-[10px] font-light uppercase tracking-[0.12em] text-black/60">
+                            por mês
+                          </p>
+
+                        </div>
+
+                      </div>
+
+                     
+                      <div className="pointer-events-none absolute bottom-0 right-0 z-0 flex h-full items-center justify-end">
+                        <div
+                          className="h-32 w-32 translate-x-5 translate-y-3 opacity-90 transition duration-500 ease-out group-hover:-translate-y-3 group-hover:translate-x-10 group-hover:scale-[1.35] sm:h-36 sm:w-36 sm:translate-x-6"
+                          style={{
+                            backgroundColor: plan.hex,
+                            maskImage: `url("${plan.face}")`,
+                            WebkitMaskImage: `url("${plan.face}")`,
+                            maskSize: 'contain',
+                            WebkitMaskSize: 'contain',
+                            maskRepeat: 'no-repeat',
+                            WebkitMaskRepeat: 'no-repeat',
+                            maskPosition: 'center',
+                            WebkitMaskPosition: 'center',
+                          }}
+                        />
+                      </div>
+
+                    </article>
+                  );
+                })}
+
+            </div>
+
+            </div>
+          </div>
+
+          <div className="mt-10 flex justify-center">
+            <a
+              href="#cadastro"
+              className="inline-block bg-gradient-orange hover:bg-gray-800 text-black px-5 sm:px-6 py-3 rounded-full text-xs sm:text-sm font-title font-bold text-center transition-all hover:shadow-lg hover:shadow-gray-900/20 hover:-translate-y-0.5"
+            >
+              Quero implementar na minha empresa ➝
+            </a>
+          </div>
+
         </div>
+
       </div>
     </section>
   );
