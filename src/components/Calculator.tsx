@@ -24,8 +24,11 @@ const PLAN_CARDS = [
 // gap-4 entre os cards do carrossel.
 const CARD_GAP = 16;
 
-// Teto da coparticipação. R$ 200 cobre por inteiro do Clube 1 ao 6, e é onde o
-// slider ainda deixa acertar o valor — acima disso vira um trilho longo demais.
+// Faixa da coparticipação. O piso de R$ 5 existe porque coparticipação zero
+// não é um cenário que a calculadora deva oferecer. O teto de R$ 200 cobre por
+// inteiro do Clube 1 ao 6, e é onde o slider ainda deixa acertar o valor —
+// acima disso vira um trilho longo demais.
+const MIN_CONTRIBUTION = 5;
 const MAX_CONTRIBUTION = 200;
 
 const brl = new Intl.NumberFormat('pt-BR', {
@@ -320,7 +323,7 @@ export default function Calculator() {
 
                   <input
                     type="range"
-                    min="0"
+                    min={MIN_CONTRIBUTION}
                     max={MAX_CONTRIBUTION}
                     step="5"
                     value={contribution}
