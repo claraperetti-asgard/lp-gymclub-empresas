@@ -56,22 +56,22 @@ export default function Calculator() {
   const [dragging, setDragging] = useState(false);
 
    const [totalEmp, setTotalEmp] = useState<number>(100);
-  const [contribution, setContribution] = useState<number>(40);
+  const [contribution, setContribution] = useState<number>(30);
   const [activeUsers, setActiveUsers] = useState<number>(30);
 
-   const [currentFixedFee, setCurrentFixedFee] = useState<number>(500);
-  const [currentFeePerUser, setCurrentFeePerUser] = useState<number>(10);
+   // R$ 1.500 era o custo total que a calculadora abria antes, quando a taxa
+  // por cadastro ainda somava (500 fixos + 100 pessoas x 10). Mantendo esse
+  // total, a simulacao continua abrindo em economia.
+  const [currentFixedFee, setCurrentFixedFee] = useState<number>(1500);
 
    const actualGymClubCost = activeUsers * contribution;
-  const annualGymClubCost = actualGymClubCost * 12;
 
-   const currentTotalCost = currentFixedFee + (totalEmp * currentFeePerUser);
+   const currentTotalCost = currentFixedFee;
   const savings = currentTotalCost - actualGymClubCost;
 
   
   const isSaving = savings > 0;
   const monthlyDelta = Math.abs(savings);
-  const annualDelta = monthlyDelta * 12;
 
    const adoptionRate = totalEmp > 0 ? (activeUsers / totalEmp) * 100 : 0;
 
@@ -127,6 +127,33 @@ export default function Calculator() {
     });
   };
 
+  // O campo mora dentro do bloco "Seu Cenário Atual" quando a empresa já tem
+  // benefício e solto quando não tem. Declarado uma vez, as duas posições não
+  // saem do lugar uma da outra.
+  const totalEmployeesField = (
+    <div>
+      <label className="block text-sm font-title font-light text-gray-700 mb-2">
+        Total de Colaboradores na Empresa
+      </label>
+
+      <input
+        type="number"
+        min="0"
+        value={totalEmp}
+        onChange={(e) => {
+          const val = toPositive(e.target.value);
+          setTotalEmp(val);
+
+          // Não faz sentido ter mais gente treinando do que gente na empresa.
+          if (activeUsers > val) {
+            setActiveUsers(val);
+          }
+        }}
+        className="w-full px-4 py-3 bg-white border border-gray-200 text-gray-900 rounded-xl focus:ring-2 focus:ring-gym-orange focus:border-gym-orange transition-all outline-none"
+      />
+    </div>
+  );
+
   return (
     <section id="calculadora" className="relative overflow-x-clip py-24">
 
@@ -180,10 +207,17 @@ export default function Calculator() {
             </div>
           </div>
 
-          <div className="grid lg:grid-cols-12 gap-8 items-stretch">
+          {/* Os dois painéis são faixas de largura cheia, empilhadas, com o
+              resultado antes do formulário nos dois cenários. A inversão sai
+              por `order` e não por trocar o JSX de lugar: assim a ordem do DOM
+              continua formulário → resultado, que é a leitura certa para
+              teclado e leitor de tela, já que o resultado é derivado dele. */}
+          <div className="flex flex-col gap-8">
 
             {/* Form Panel */}
-            <div className="lg:col-span-5 min-w-0 h-full bg-gray-50 p-6 sm:p-8 rounded-[32px] border border-gray-200">
+            <div
+              className="order-2 min-w-0 bg-gray-50 p-6 sm:p-8 rounded-[32px] border border-gray-200"
+            >
 
               <h3 className="text-base sm:text-xl font-bold text-gray-900 mb-6">
                 Configure sua simulação
@@ -192,9 +226,9 @@ export default function Calculator() {
               <div className="space-y-6">
 
                 {hasBenefit && (
-                  <div className="p-4 bg-white rounded-2xl border border-gray-200 space-y-4 mb-6">
+                  <div className="p-4 bg-white rounded-2xl border border-gray-200 grid gap-4 sm:grid-cols-3 mb-6">
 
-                    <h4 className="font-bold text-[10px] text-gray-500 uppercase tracking-widest">
+                    <h4 className="sm:col-span-3 font-bold text-[10px] text-gray-500 uppercase tracking-widest">
                       Seu Cenário Atual
                     </h4>
 
@@ -212,58 +246,64 @@ export default function Calculator() {
                       />
                     </div>
 
+                    {totalEmployeesField}
+
                     <div>
                       <label className="block text-sm font-title font-light text-gray-700 mb-2">
-                        Taxa por Colaborador Cadastrado (R$)
+                        Colaboradores Ativos na Academia
                       </label>
 
                       <input
                         type="number"
                         min="0"
-                        value={currentFeePerUser}
-                        onChange={(e) => setCurrentFeePerUser(toPositive(e.target.value))}
+                        max={totalEmp}
+                        value={activeUsers}
+                        onChange={(e) =>
+                          setActiveUsers(Math.min(toPositive(e.target.value), totalEmp))
+                        }
                         className="w-full px-4 py-3 bg-white border border-gray-200 text-gray-900 rounded-xl focus:ring-2 focus:ring-gym-orange focus:border-gym-orange transition-all outline-none"
                       />
 
-                      <p className="text-xs font-title font-light text-gray-500 mt-2">
-                        Valor que a plataforma cobra apenas para liberar o acesso, mesmo de quem não usa.
-                      </p>
-                    </div>
-
-                  
-                    <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 pt-3 border-t border-dashed border-gray-200">
-                      <span className="text-xs font-title font-light text-gray-500">
-                        Você paga hoje, por mês
-                      </span>
-
-                      <span className="text-base font-title font-bold text-gray-900">
-                        {money(currentTotalCost)}
-                      </span>
                     </div>
 
                   </div>
                 )}
 
-                <div>
-                  <label className="block text-sm font-title font-light text-gray-700 mb-2">
-                    Total de Colaboradores na Empresa
-                  </label>
+                {!hasBenefit && totalEmployeesField}
 
-                  <input
-                    type="number"
-                    min="0"
-                    value={totalEmp}
-                    onChange={(e) => {
-                      const val = toPositive(e.target.value);
-                      setTotalEmp(val);
+                {/* Quem já tem benefício informa o número real de ativos lá em
+                    cima; a régua é só para quem ainda precisa estimar. */}
+                {!hasBenefit && (
+                  <div>
+                    <div className="flex flex-col items-start gap-1 sm:flex-row sm:justify-between sm:items-end mb-2">
 
-                      if (activeUsers > val) {
-                        setActiveUsers(val);
-                      }
-                    }}
-                    className="w-full px-4 py-3 bg-white border border-gray-200 text-gray-900 rounded-xl focus:ring-2 focus:ring-gym-orange focus:border-gym-orange transition-all outline-none"
-                  />
-                </div>
+                      <label className="block text-sm font-title font-light text-gray-700">
+                        Estimativa de Uso
+                      </label>
+
+                      <span className="text-sm font-title font-bold text-gray-900">
+                        {activeUsers} colaboradores
+                        <span className="font-light text-gray-500">
+                          {' '}· {adoptionRate.toFixed(0)}%
+                        </span>
+                      </span>
+
+                    </div>
+
+                    <input
+                      type="range"
+                      min="0"
+                      max={totalEmp}
+                      value={activeUsers}
+                      onChange={(e) => setActiveUsers(Number(e.target.value))}
+                      className="w-full accent-gym-green"
+                    />
+
+                    <p className="text-xs font-title font-light text-gray-500 mt-2">
+                      Ajuste para ver o custo real baseado na adoção.
+                    </p>
+                  </div>
+                )}
 
                 <div>
                   <div className="flex flex-col items-start gap-1 sm:flex-row sm:justify-between sm:items-end mb-2">
@@ -293,54 +333,27 @@ export default function Calculator() {
                   </p>
                 </div>
 
-                <div>
-                  <div className="flex flex-col items-start gap-1 sm:flex-row sm:justify-between sm:items-end mb-2">
-
-                    <label className="block text-sm font-title font-light text-gray-700">
-                      Estimativa de Uso
-                    </label>
-
-                    <span className="text-sm font-title font-bold text-gray-900">
-                      {activeUsers} colaboradores
-                      <span className="font-light text-gray-500">
-                        {' '}· {adoptionRate.toFixed(0)}%
-                      </span>
-                    </span>
-
-                  </div>
-
-                  <input
-                    type="range"
-                    min="0"
-                    max={totalEmp}
-                    value={activeUsers}
-                    onChange={(e) => setActiveUsers(Number(e.target.value))}
-                    className="w-full accent-gym-green"
-                  />
-
-                  <p className="text-xs font-title font-light text-gray-500 mt-2">
-                    Ajuste para ver o custo real baseado na adoção.
-                  </p>
-                </div>
 
               </div>
             </div>
 
             {/* Results Panel */}
-            <div className="lg:col-span-7 min-w-0 flex flex-col gap-6">
+            <div
+              className="order-1 min-w-0 flex flex-col gap-6"
+            >
 
               {hasBenefit ? (
 
                 <>
 
-                <div className="grid sm:grid-cols-2 gap-6">
+                <div className="grid sm:grid-cols-2 gap-6 ">
 
                   {/* Custo Atual */}
-                  <div className="bg-gray-50 p-6 sm:p-8 rounded-[32px] border border-gray-200 shadow-lg shadow-gray-200/30 relative overflow-hidden sm:min-h-[280px] flex flex-col sm:justify-center">
+                  <div className="bg-gray-50 px-6 py-4 sm:px-8 sm:py-5 rounded-[32px] border border-gray-200 shadow-lg shadow-gray-200/30 relative overflow-hidden flex flex-col">
 
                     <div className="absolute left-0 top-0 bottom-0 w-1 bg-gray-300 rounded-l-[32px]" />
 
-                    <h4 className="relative z-10 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4">
+                    <h4 className="relative z-10 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">
                       Custo Atual (Outros Apps)
                     </h4>
 
@@ -348,41 +361,25 @@ export default function Calculator() {
                       {money(currentTotalCost)}
                     </div>
 
-                    <p className="relative z-10 text-xs font-title font-light text-gray-500 uppercase tracking-widest mt-4">
-                      Você paga por {totalEmp} pessoas, independente de quem usa.
+                    <p className="relative z-10 text-xs font-title font-light text-gray-500 uppercase tracking-widest mt-3">
+                      Mensalidade fixa da plataforma, use quem usar.
                     </p>
 
                   </div>
 
                   {/* Simulação GymClub */}
-                  <div className="bg-[#e9fdf2] p-6 sm:p-8 rounded-[32px] border border-gym-green/30 shadow-lg shadow-gym-green/10 relative overflow-hidden sm:min-h-[280px] flex flex-col sm:justify-center">
+                  <div className="bg-[#e9fdf2] px-6 py-4 sm:px-8 sm:py-5 rounded-[32px] border border-gym-green/30 shadow-lg shadow-gym-green/10 relative overflow-hidden flex flex-col">
 
                     <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gym-green rounded-l-[32px]" />
 
-                    <div
-                      className={`relative z-10 inline-block mb-4 self-start sm:absolute sm:top-6 sm:right-6 sm:mb-0 text-[10px] font-title font-bold px-3 py-1.5 rounded-full shadow-sm ${
-                        isSaving
-                          ? 'bg-gym-green text-gray-900'
-                          : 'bg-gray-900 text-white'
-                      }`}
-                    >
-                      {isSaving ? (
-                        <>
-                          VOCÊ ECONOMIZA{' '}
-                          {((savings / currentTotalCost) * 100).toFixed(0)}%
-                        </>
-                      ) : (
-                        'VOCÊ INVESTE MAIS'
-                      )}
-                    </div>
-
-                    <h4 className="relative z-10 text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-4 sm:pr-36">
+                    <h4 className="relative z-10 text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-2">
                       Simulação GymClub
                     </h4>
 
-                    <div className="relative z-10 text-3xl sm:text-4xl font-title font-bold text-gray-900 mb-2">
+                    <div className="relative z-10 text-3xl sm:text-4xl font-title font-bold text-gray-900 mb-3">
                       {money(actualGymClubCost)}
                     </div>
+                  
 
                     <p className="relative z-10 text-xs font-title font-light text-gray-700 italic">
                       Pague apenas pelo uso efetivo ({activeUsers} pessoas).
@@ -405,25 +402,7 @@ export default function Calculator() {
                 </div>
 
              
-                <div className="bg-gray-50 rounded-[32px] border border-gray-200 p-6 relative overflow-hidden">
-
-                  <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gym-green rounded-l-[32px]" />
-
-                  <h4 className="relative z-10 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">
-                    {isSaving ? 'Economia anual' : 'Investimento anual a mais'}
-                  </h4>
-
-                  <div className="relative z-10 text-2xl font-title font-bold text-gray-900 mb-1">
-                    {money(annualDelta)}
-                  </div>
-
-                  <p className="relative z-10 text-xs font-title font-light text-gray-500">
-                    {isSaving
-                      ? 'Mantendo a mesma adoção da simulação acima.'
-                      : `Em troca, cada um dos ${activeUsers} ativos recebe ${money(contribution)} de desconto na mensalidade — dinheiro que ele sente no bolso, não taxa de acesso.`}
-                  </p>
-
-                </div>
+              
 
                 </>
 
@@ -431,7 +410,7 @@ export default function Calculator() {
 
           
 
-                <div className="bg-[#fff3e8] mt-28 p-6 sm:p-8 rounded-[40px] border border-gym-orange/30 shadow-lg shadow-gym-orange/10 relative overflow-hidden">
+                <div className="bg-[#fff3e8] p-6 sm:p-8 rounded-[40px] border border-gym-orange/30 shadow-lg shadow-gym-orange/10 relative overflow-hidden">
 
                   <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gym-orange rounded-l-[40px]" />
 
@@ -465,7 +444,7 @@ export default function Calculator() {
           </div>
 
     
-          <div className="mt-3 pt-10  ">
+          <div className="-mt-3 pt-10  ">
 
             <div className="mb-6">
 
