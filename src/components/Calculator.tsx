@@ -429,17 +429,14 @@ export default function Calculator() {
 
               ) : (
 
-                /* Investimento. Três cards do tamanho do que cada um diz:
-                   um painel único aqui virava uma caixa quase vazia, já que
-                   sem benefício atual não existe custo para comparar. */
-                <>
+          
 
-                <div className="bg-[#fff3e8] p-6 sm:p-8 rounded-[40px] border border-gym-orange/30 shadow-lg shadow-gym-orange/10 relative overflow-hidden">
+                <div className="bg-[#fff3e8] mt-28 p-6 sm:p-8 rounded-[40px] border border-gym-orange/30 shadow-lg shadow-gym-orange/10 relative overflow-hidden">
 
                   <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gym-orange rounded-l-[40px]" />
 
                   <h4 className="relative z-10 text-[10px] font-bold text-gray-800 uppercase tracking-widest mb-3">
-                    Investimento estimado
+                    Investimento estimado mensal
                   </h4>
 
                   <div className="relative z-10 flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-4">
@@ -448,38 +445,19 @@ export default function Calculator() {
                       {money(actualGymClubCost)}
                     </span>
 
-                    <span className="text-xs font-title font-light text-gray-700 uppercase tracking-widest">
-                      por mês
-                    </span>
+                     
 
                   </div>
 
                   <p className="relative z-10 text-xs sm:text-sm font-title font-light text-gray-700">
                     {activeUsers} colaboradores ativos × {money(contribution)} de
-                    coparticipação. Quem não usa, não entra na conta.
+                    coparticipação.
                   </p>
 
                 </div>
+ 
 
-                <div className="bg-gray-50 rounded-[32px] border border-gray-200 p-6 relative overflow-hidden">
-
-                  <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gym-orange rounded-l-[32px]" />
-
-                  <h4 className="relative z-10 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">
-                    Investimento anual
-                  </h4>
-
-                  <div className="relative z-10 text-2xl font-title font-bold text-gray-900 mb-1">
-                    {money(annualGymClubCost)}
-                  </div>
-
-                  <p className="relative z-10 text-xs font-title font-light text-gray-500">
-                    Mantendo os {adoptionRate.toFixed(0)}% de adoção da simulação.
-                  </p>
-
-                </div>
-
-                </>
+ 
               )}
 
             </div>
@@ -557,12 +535,12 @@ export default function Calculator() {
                         <div className="mt-3 space-y-1">
 
                           {help > 0 && (
-                            <p className="font-title text-lg font-light text-red-500 line-through">
+                            <p className="font-title text-xl font-semibold text-gray-400 red-line-through">
                               {amount(plan.price)}
                             </p>
                           )}
 
-                          <p className="font-title text-2xl font-semibold text-black sm:text-3xl">
+                          <p className="font-title text-3xl font-semibold text-black sm:text-4xl">
                             {amount(finalPrice)}
                           </p>
 

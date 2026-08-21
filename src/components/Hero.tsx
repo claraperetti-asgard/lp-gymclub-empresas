@@ -25,7 +25,7 @@ export default function Hero() {
           </h1>
 
           <p className="text-sm sm:text-xl font-title font-normal text-gray-800 max-w-3xl mx-auto mb-10 sm:mb-12 leading-relaxed">
-            Implemente uma cultura de saúde sem carregar um custo cego. No GymClub, sua empresa só paga a coparticipação dos colaboradores que realmente treinam.
+           Implemente uma cultura de saúde sem pagar por colaboradores inativos. No GymClub, sua empresa só paga a coparticipação dos colaboradores que realmente treinam.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

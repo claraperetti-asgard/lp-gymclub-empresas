@@ -233,4 +233,10 @@
 .animate-float-reverse {
   animation: floatReverse 4.5s ease-in-out infinite;
 }
+
+.red-line-through {
+    text-decoration-line: line-through;
+    text-decoration-color: rgb(255, 0, 0);
+    text-decoration-thickness: 2px;
+}
 }
