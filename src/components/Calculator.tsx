@@ -456,9 +456,9 @@ export default function Calculator() {
               </h3>
 
               <p className="text-xs sm:text-sm font-title font-light text-gray-500 mt-1">
-                Com a sua ajuda de{' '}
+                Com o seu subsídio de{' '}
                 <strong className="font-bold text-gray-900">{money(contribution)}</strong>,
-                este é o preço que aparece para ele em cada plano.
+                o preço dos planos despenca para o funcionário. Ele enxerga a economia direto no bolso e tem total flexibilidade para treinar em várias academias. Economia real e liberdade de escolha na tela do celular.
               </p>
 
             </div>
